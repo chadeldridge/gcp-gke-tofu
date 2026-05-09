@@ -1,0 +1,83 @@
+{
+  "acl": [
+    {
+      "entity": "project-owners-123456789012",
+      "projectTeam": {
+        "projectNumber": "123456789012",
+        "team": "owners"
+      },
+      "role": "OWNER"
+    },
+    {
+      "entity": "project-editors-123456789012",
+      "projectTeam": {
+        "projectNumber": "123456789012",
+        "team": "editors"
+      },
+      "role": "OWNER"
+    },
+    {
+      "entity": "project-viewers-123456789012",
+      "projectTeam": {
+        "projectNumber": "123456789012",
+        "team": "viewers"
+      },
+      "role": "READER"
+    }
+  ],
+  "creation_time": "2026-05-09T16:50:51+0000",
+  "default_acl": [
+    {
+      "entity": "project-owners-123456789012",
+      "projectTeam": {
+        "projectNumber": "123456789012",
+        "team": "owners"
+      },
+      "role": "OWNER"
+    },
+    {
+      "entity": "project-editors-123456789012",
+      "projectTeam": {
+        "projectNumber": "123456789012",
+        "team": "editors"
+      },
+      "role": "OWNER"
+    },
+    {
+      "entity": "project-viewers-123456789012",
+      "projectTeam": {
+        "projectNumber": "123456789012",
+        "team": "viewers"
+      },
+      "role": "READER"
+    }
+  ],
+  "default_storage_class": "STANDARD",
+  "generation": 1778345451287299301,
+  "lifecycle_config": {
+    "rule": [
+      {
+        "action": {
+          "type": "Delete"
+        },
+        "condition": {
+          "isLive": false,
+          "numNewerVersions": 10
+        }
+      }
+    ]
+  },
+  "location": "US-EAST1",
+  "location_type": "region",
+  "metageneration": 2,
+  "name": "my-project-982741-tofu-state",
+  "public_access_prevention": "inherited",
+  "soft_delete_policy": {
+    "effectiveTime": "2026-05-09T16:50:51.462000+00:00",
+    "retentionDurationSeconds": "604800"
+  },
+  "storage_url": "gs://my-project-982741-tofu-state/",
+  "uniform_bucket_level_access": false,
+  "update_time": "2026-05-09T16:55:58+0000",
+  "versioning_enabled": true
+}

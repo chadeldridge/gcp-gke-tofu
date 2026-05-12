@@ -64,7 +64,13 @@ node_zones = ["us-east1-d"]
 
 ### Check IAM Roles of the Service Account.
 ```bash
-gcloud projects get-iam-policy <project-id> --flatten="bindings[].members" --format="table(bindings.role)" --filter="bindings.members:mapo-tofu@<project-id>.iam.gserviceaccount.com"
+gcloud projects get-iam-policy <project-id> --flatten="bindings[].members" \
+    --format="table(bindings.role)" \
+    --filter="bindings.members:mapo-tofu@<project-id>.iam.gserviceaccount.com"
+```
+
+Output:
+```
 ROLE
 roles/editor
 ```
@@ -97,6 +103,10 @@ export GOOGLE_IMPERSONATE_SERVICE_ACCOUNT=mapo-tofu@<project-id>.iam.gserviceacc
 ### Verify the Service Account Roles
 ```bash
 gcloud projects get-iam-policy <project-id> --flatten="bindings[].members" --format="table(bindings.role)" --filter="bindings.members:mapo-tofu@<project-id>.iam.gserviceaccount.com"
+```
+
+Output:
+```
 ROLE
 roles/editor
 roles/iam.serviceAccountAdmin

@@ -1,13 +1,14 @@
 #!/bin/bash
 
-encrypted="false"
-stage="${DEPLOY_ENV:-dev}"
-project="${GOOGLE_PROJECT}"
-region="${GOOGLE_REGION:-us-east1}"
-# Prefix ${stage}/appName
-prefix="${stage}"
-bucket_suffix="-tofu-state"
-vers=10
+tofu_dir="./opentofu"               # Directory where .tf files are kept.
+encrypted="false"                   # Report if the bucket is being encrypted based on whether a key was provided.
+stage="${DEPLOY_ENV:-dev}"          # Environment name (dev, qa1, stg, prd, etc.) used for prefix naming.
+project="${GOOGLE_PROJECT}"         # GCP project ID (my-project-192824) to deploy assets.
+region="${GOOGLE_REGION:-us-east1}" # GCP region to deploy assets.
+# prefix="${stage}/appName"
+prefix="${stage}"                   # Prefix used for state file storage. Good for keeping infra states separate.
+bucket_suffix="-tofu-state"         # Stardardized bucket name.
+vers=10                             # Number of versions to retain in the bucket.
 
 help() {
     echo "Usage: $0 [options]"
@@ -155,7 +156,7 @@ url=$(echo $desc | jq -r '.storage_url')
 
 set +e
 # Init tofu with bucket and prefix information.
-tofu init -backend-config="bucket=${bucket}" -backend-config="prefix=${prefix} -upgrade"
+tofu -chdir=$tofu_dir init -backend-config="bucket=${bucket}" -backend-config="prefix=${prefix} -upgrade"
 
 echo
 echo "Bucket:     ${bucket}"

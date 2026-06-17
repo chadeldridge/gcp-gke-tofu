@@ -3,13 +3,32 @@
 # Run this script from the dir you want to initialize with tofu/terragrunt.
 # opentofu/live/dev/network
 
+# Locate project root (where bootstrap.sh is)
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+CWD=$(pwd)
+
+# Determine if we are in live/<env>/<service>
+is_service_dir=false
+if [[ "$CWD" == "$SCRIPT_DIR/opentofu/live/"* && -f "terragrunt.hcl" ]]; then
+    is_service_dir=true
+fi
+
 tofu_dir="."                        # Directory where .tf files are kept.
 encrypted="false"                   # Report if the bucket is being encrypted based on whether a key was provided.
-stage="${DEPLOY_ENV:-dev}"          # Environment name (dev, qa1, stg, prd, etc.) used for prefix naming.
+
+if [ "$is_service_dir" = true ]; then
+    detected_stage=$(basename "$(dirname "$CWD")")
+    stage="${DEPLOY_ENV:-$detected_stage}"
+    tofu_root_dir="$SCRIPT_DIR/opentofu"
+    prefix_dir="${CWD#$tofu_root_dir/}"
+    prefix="${prefix_dir}/terraform.tfstate"
+else
+    stage="${DEPLOY_ENV:-dev}"
+    prefix="${stage}"
+fi
+
 project="${GOOGLE_PROJECT}"         # GCP project ID (my-project-192824) to deploy assets.
 region="${GOOGLE_REGION:-us-east1}" # GCP region to deploy assets.
-# prefix="${stage}/appName"
-prefix="${stage}"                   # Prefix used for state file storage. Good for keeping infra states separate.
 bucket_suffix="-tofu-state"         # Stardardized bucket name.
 vers=10                             # Number of versions to retain in the bucket.
 
@@ -59,6 +78,13 @@ fi
 if ! command -v tofu &> /dev/null; then
     echo "error: tofu command not found. please install one and try again."
     exit 1
+fi
+
+if [ "$is_service_dir" = true ]; then
+    if ! command -v terragrunt &> /dev/null; then
+        echo "error: terragrunt command not found. please install one and try again."
+        exit 1
+    fi
 fi
 
 if ! command -v gcloud &> /dev/null; then
@@ -157,10 +183,6 @@ is_versioned=$(echo $desc | jq -r '.versioning')
 version_retention=$(echo $desc | jq -r '.lifecycle_config.rule.[].condition.numNewerVersions')
 url=$(echo $desc | jq -r '.storage_url')
 
-set +e
-# Init tofu with bucket and prefix information.
-tofu -chdir=$tofu_dir init -backend-config="bucket=${bucket}" -backend-config="prefix=${prefix}" -upgrade
-
 echo
 echo "Bucket:     ${bucket}"
 echo "Prefix:     ${prefix}"
@@ -168,3 +190,14 @@ echo "State Path: ${url}${prefix}"
 echo "Versioned:  ${is_versioned}"
 echo "Versions:   ${version_retention}"
 echo "Encrypted:  ${encrypted}"
+
+if [ "$is_service_dir" = true ]; then
+    echo
+    echo "Running in service directory: ${prefix_dir}"
+    echo "Initializing Terragrunt..."
+    set +e
+    terragrunt init -upgrade
+else
+    echo
+    echo "Running outside of a service directory; skipping Terragrunt initialization."
+fi

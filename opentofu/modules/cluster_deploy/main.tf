@@ -1,28 +1,27 @@
-provider "google" {
-  # Leave project blank to get from GOOGLE_PROJECT env var.
-  # Otherwise set the GCP Project ID here.
-  #project = ""
-  project = var.project_id
-  region  = var.region
-}
+####################################################################################################
+# Deploy GKE cluster
+#
+# This is a wrapper module to enable deployment of a GKE cluster through Terragrunt. It uses the
+# gke and workload-identity modules to provision a cluster and configure workload identity. The
+# network module is managed separately by Terragrunt to provide network resources.
+####################################################################################################
 
 # Set all variables for the gke module.
 module "gke" {
-  source = "./modules/gke"
+  source = "../gke"
 
   project_id          = var.project_id
   region              = var.region
   cluster_name        = var.cluster_name
-  network_name        = google_compute_network.main.name
-  subnetwork_name     = google_compute_subnetwork.main.name
-  pods_range_name     = "pods"
-  services_range_name = "services"
-  kubernetes_version  = "1.33"
-  #node_machine_type   = "e2-standard-4"
-  node_machine_type   = "e2-standard-2"
-  node_count          = 3
-  min_node_count      = 3
-  max_node_count      = 15
+  network_name        = var.network_name
+  subnetwork_name     = var.subnetwork_name
+  pods_range_name     = var.pods_range_name
+  services_range_name = var.services_range_name
+  kubernetes_version  = var.kubernetes_version
+  node_machine_type   = var.node_machine_type
+  node_count          = var.node_count
+  min_node_count      = var.min_node_count
+  max_node_count      = var.max_node_count
   node_zones          = var.node_zones
 }
 
@@ -44,9 +43,9 @@ resource "kubernetes_namespace_v1" "app" {
 
 # Set Workload Identity for the application
 module "app_workload_identity" {
-  source = "./modules/workload-identity"
+  source = "../workload-identity"
 
-  project_id                = var.project_id
+  project_id             = var.project_id
   cluster_name           = var.cluster_name
   namespace              = kubernetes_namespace_v1.app.metadata[0].name
   service_account_name   = "app-sa"
@@ -61,7 +60,7 @@ module "app_workload_identity" {
 
 # Set Workload Identity for a data pipeline
 module "pipeline_workload_identity" {
-  source = "./modules/workload-identity"
+  source = "../workload-identity"
 
   project_id             = var.project_id
   cluster_name           = var.cluster_name

@@ -1,24 +1,24 @@
 output "cluster_name" {
-  value     = google_container_cluster.primary
+  value     = module.gke.cluster_name
   sensitive = false
 }
 
 output "cluster_endpoint" {
-  value     = google_container_cluster.primary.endpoint
+  value     = module.gke.cluster_endpoint
   sensitive = true
 }
 
 output "cluster_ca_certificate" {
-  value     = google_container_cluster.primary.master_auth[0].cluster_ca_certificate
+  value     = module.gke.cluster_ca_certificate
   sensitive = true
 }
 
 output "workload_identity_pool" {
-  value     = "${var.project_id}.svc.id.goog"
+  value     = module.gke.workload_identity_pool
   sensitive = false
 }
 
 output "node_service_account_email" {
-  value     = google_service_account.gke_nodes.email
+  value     = module.gke.node_service_account_email
   sensitive = false
 }

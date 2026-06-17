@@ -10,11 +10,15 @@ resource "google_container_cluster" "primary" {
   location = var.region
   project  = var.project_id
 
+  # Ensure all required GCP APIs are enabled before creating the cluster.
+  depends_on = [ google_project_service.enabled_apis ]
+
   # Delete the node pool to use separately managed one.addons_config
   # This allows for node pool replacement withouth having to delete the cluster.
   # Setting to 1 node means only 1 node has to be built and deleted.
   remove_default_node_pool = true
   initial_node_count       = 1
+  deletion_protection      = false
 
   min_master_version = var.kubernetes_version
 

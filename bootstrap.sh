@@ -1,6 +1,9 @@
 #!/bin/bash
 
-tofu_dir="./opentofu"               # Directory where .tf files are kept.
+# Run this script from the dir you want to initialize with tofu/terragrunt.
+# opentofu/live/dev/network
+
+tofu_dir="."                        # Directory where .tf files are kept.
 encrypted="false"                   # Report if the bucket is being encrypted based on whether a key was provided.
 stage="${DEPLOY_ENV:-dev}"          # Environment name (dev, qa1, stg, prd, etc.) used for prefix naming.
 project="${GOOGLE_PROJECT}"         # GCP project ID (my-project-192824) to deploy assets.
@@ -87,7 +90,7 @@ create_bucket() {
     # Create a tmp dir for writing temporary files.
     tmp_dir=$(mktemp -d)
     trap 'rm -rf "${tmp_dir}"' EXIT
-    
+
     # Create a tmp lifecycle config file.
     lc_file="${tmp_dir}/gcs-lifecycle.json"
     cat << EOF > $lc_file
@@ -103,27 +106,27 @@ create_bucket() {
   ]
 }
 EOF
-    
+
     # Create the new state bucket.
     gcloud storage buckets create \
         gs://${project}${bucket_suffix} \
         --project=${project} \
         --location=${region} \
         --lifecycle-file=${lc_file}
-    
+
     # gcloud crate command does not provide feedback so verify the bucket was created with describe.
     desc=$(gcloud storage buckets describe gs://${project}${bucket_suffix} --format=json)
     bucket=$(echo $desc | jq -r '.name')
-    
+
     # Make sure we got a bucket name back.
     if [ -z "$bucket" ]; then
         echo "error: bucket name is empty"
         exit 1
     fi
-    
+
     # Enable versioning.
     gcloud storage buckets update "gs://${bucket}" --versioning
-    
+
     # TODO: This doesn't work. Might have to get-iam-policy, edit it, then set-iam-policy.
     # Enable auditing on storage buckets.
     #gcloud projects add-iam-audit-config ${project} \
@@ -156,7 +159,7 @@ url=$(echo $desc | jq -r '.storage_url')
 
 set +e
 # Init tofu with bucket and prefix information.
-tofu -chdir=$tofu_dir init -backend-config="bucket=${bucket}" -backend-config="prefix=${prefix} -upgrade"
+tofu -chdir=$tofu_dir init -backend-config="bucket=${bucket}" -backend-config="prefix=${prefix}" -upgrade
 
 echo
 echo "Bucket:     ${bucket}"

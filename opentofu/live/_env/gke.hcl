@@ -25,7 +25,7 @@ dependency "network" {
 # node_zones
 inputs = {
   network_name        = dependency.network.outputs.network_name
-  subnetwork_name     = dependency.network.outputs.subnetwork_main
+  subnetwork_name     = dependency.network.outputs.subnetwork_name
   pods_range_name     = dependency.network.outputs.subnetwork_pods_name
   services_range_name = dependency.network.outputs.subnetwork_services_name
 }

@@ -1,0 +1,6 @@
+---
+# Add infrastructure-layer resources here (e.g. cert-manager, ingress-nginx,
+# HelmRepositories, external-secrets, monitoring stack).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: []

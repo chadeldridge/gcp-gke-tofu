@@ -1,0 +1,7 @@
+---
+# Add application HelmReleases or raw manifests here.
+# Each app gets its own subdirectory and is referenced from this list.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - uptest

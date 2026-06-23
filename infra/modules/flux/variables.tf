@@ -1,25 +1,4 @@
 # Cluster Variables
-variable "project_id" {
-  type = string
-  description = "Project ID for the cluster"
-}
-
-variable "region" {
-  type = string
-  description = "Region where the cluster is located"
-}
-
-variable "cluster_name" {
-  type = string
-  description = "Cluster name"
-}
-
-variable "use_private_endpoint" {
-  type = bool
-  description = "Connect to the cluster using a private endpoint"
-  default = false
-}
-
 variable "flux_namespace" {
   type = string
   description = "Namespace for Flux"
@@ -51,9 +30,4 @@ variable "github_branch" {
 variable "target_path" {
   type = string
   description = "Relative path to the Git repository root where the sync manifest is commited."
-}
-
-variable "github_deploy_key_title" {
-  type = string
-  description = "Name of the GitHub deploy key"
 }

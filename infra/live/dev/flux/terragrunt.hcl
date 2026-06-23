@@ -3,16 +3,13 @@ include "root" {
 }
 
 include "env" {
-  path   = "${get_terragrunt_dir()}/../../_env/uptest.hcl"
+  path   = "${get_terragrunt_dir()}/../../_env/flux.hcl"
   expose = true
 }
 
 inputs = {
   # region: The GCP region to deploy to. Default us-central1. Inlcuded in merged locals.
   #region = "us-central1"
-
-  # app_name: The name of the application to deploy.
-  app_name = "uptest"
 
   # Override here to deploy different apps from the same module.
   # untagged_keep_days: Number of days to keep untagged images before they are deleted.
@@ -35,5 +32,5 @@ inputs = {
   github_repo = "gcp-gke-tofu"
 
   # github_branch: Set this to use a branch besides main.
-  #github_branch       = "dev"
+  #github_branch       = local.env
 }

@@ -6,7 +6,6 @@ variable "project_id" {
 variable "region" {
   type        = string
   description = "GCP Region for the cluster"
-  default     = "us-central1"
 }
 
 variable "cluster_name" {
@@ -67,5 +66,5 @@ variable "node_disk_size_gb" {
 variable "node_zones" {
   type        = list(string)
   description = "Zones within the region where nodes are created. Controls the actual node count (node_count * len(node_zones) total nodes). Defaults to a single zone to avoid unexpected multiplication."
-  default     = []
+  default     = ["us-central1-a"]
 }

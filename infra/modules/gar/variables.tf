@@ -9,7 +9,7 @@ variable "env" {
   description = "Environment name"
 }
 
-variable "app_name" {
+variable "docker_repo_name" {
   type = string
   description = "Application name"
 }

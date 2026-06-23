@@ -1,11 +1,11 @@
 data "google_project" "project" {}
 
-resource "google_artifact_registry_repository" "app_repo" {
+resource "google_artifact_registry_repository" "docker_repo" {
   # Ensure all required GCP APIs are enabled before creating the repository.
   depends_on = [ google_project_service.enabled_apis ]
 
   location = var.region
-  repository_id = var.app_name
+  repository_id = var.docker_repo_name
   deletion_policy = "Docker repository managed by Terraform"
   format = "DOCKER"
 
@@ -16,7 +16,7 @@ resource "google_artifact_registry_repository" "app_repo" {
 
   labels = {
     environment = var.env
-    app_name = var.app_name
+    docker_repo_name = var.docker_repo_name
     managed_by = "terraform"
   }
 

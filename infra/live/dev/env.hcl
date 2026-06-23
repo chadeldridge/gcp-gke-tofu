@@ -13,6 +13,7 @@ locals {
   kubernetes_version = "1.33"
   # Must have total_cpu_count <= 8 to remain within the free tier.
   # e2-standard-2 * 4 = 8 vCPUs
-  max_node_count    = 4
-  node_machine_type = "e2-standard-2"
+  max_node_count = 4
+  #node_machine_type = "e2-standard-2"
+  node_machine_type = "e2-micro"
 }

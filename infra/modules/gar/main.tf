@@ -10,9 +10,9 @@ resource "google_artifact_registry_repository" "docker_repo" {
   format = "DOCKER"
 
   # Enable immutable tags
-  docker_config {
-    immutable_tags = true
-  }
+  #docker_config {
+  #  immutable_tags = true
+  #}
 
   labels = {
     environment = var.env

@@ -4,6 +4,8 @@ resources:
   - namespace.yaml
   - deployment.yaml
   - service.yaml
+  - backendconfig.yaml
+  - ingress.yaml
 images:
   - name: uptest
     newName: us-central1-docker.pkg.dev/pulumi-dev-493104/docker-private/uptest

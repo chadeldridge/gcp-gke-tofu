@@ -93,7 +93,7 @@ func handleHealthCheck(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/health", handleHealthCheck)
+	mux.HandleFunc("/healthz", handleHealthCheck)
 	mux.HandleFunc("/", handleRoot)
 
 	addr := ":8080"

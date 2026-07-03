@@ -189,7 +189,7 @@ deploy_infra() {
     local infra_dir=$1
     echo "Deploying infrastructure for ${ENV}..."
 
-    SERVICES=("network" "gke" "artifact_registry")
+    SERVICES=("network" "ingress" "gke" "artifact_registry")
     for service in "${SERVICES[@]}"; do
         echo "    Deploying $service..."
         cd "${infra_dir}/${service}"
@@ -204,6 +204,11 @@ deploy_infra() {
                 --region "${GOOGLE_REGION}" \
                 --project "${GOOGLE_PROJECT}"
             CLUSTER_ENDPOINT=$(tg_get cluster_endpoint)
+        fi
+
+        if [ "${service}" == "ingress" ]; then
+            INGRESS_IP=$(tg_get ingress_ip_address)
+            dbg "INGRESS_IP: ${INGRESS_IP}"
         fi
 
         if [ "${service}" == "artifact_registry" ]; then
@@ -302,4 +307,6 @@ echo
 echo "Cluster is ready."
 echo "    Check uptest status: kubectl get pods -n uptest"
 echo
-echo "    uptest: http://${CLUSTER_ENDPOINT}"
+echo "    uptest: http://${INGRESS_IP}"
+echo "    (GCLB provisioning can take several minutes after the Ingress is first created;"
+echo "     check progress with: kubectl get ingress -n uptest)"

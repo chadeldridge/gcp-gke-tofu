@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptest
+  namespace: uptest
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "app-dev-ingress-ip"
+spec:
+  defaultBackend:
+    service:
+      name: uptest
+      port:
+        number: 80

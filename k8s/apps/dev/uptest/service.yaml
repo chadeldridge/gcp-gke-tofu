@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: uptest
   namespace: uptest
+  annotations:
+    cloud.google.com/backend-config: '{"default": "uptest"}'
 spec:
   selector:
     app: uptest

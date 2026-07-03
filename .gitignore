@@ -51,3 +51,6 @@ terraform.rc
 
 # Ignore direnv files to ensure sensitive environment variables are not checked in
 .envrc
+
+# Ignore local env files.
+.env

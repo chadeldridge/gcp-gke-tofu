@@ -312,6 +312,8 @@ fi
 
 echo
 echo "Cluster is ready."
+echo
+echo "    cluster_endpoint: ${CLUSTER_ENDPOINT}"
 echo "    Check uptest status: kubectl get pods -n uptest"
 echo
 echo "    uptest: http://${INGRESS_IP}"

@@ -257,11 +257,18 @@ build_app() {
     mv "${KUSTOMIZATION}.tmp" "${KUSTOMIZATION}"
     phase_end
 
-    if git -C "${ROOT}" diff --quiet "${KUSTOMIZATION}"; then
-        log "  kustomization.yaml unchanged — no commit needed"
+    # Keep the CLUSTER_NAME uptest reports in sync with the real GKE cluster name.
+    DEPLOYMENT="${ROOT}/k8s/apps/${env}/uptest/deployment.yaml"
+    phase_start "Updating CLUSTER_NAME env var to ${CLUSTER_NAME}..."
+    sed "/name: CLUSTER_NAME/{n;s|value:.*|value: ${CLUSTER_NAME}|}" "${DEPLOYMENT}" > "${DEPLOYMENT}.tmp"
+    mv "${DEPLOYMENT}.tmp" "${DEPLOYMENT}"
+    phase_end
+
+    if git -C "${ROOT}" diff --quiet "${KUSTOMIZATION}" "${DEPLOYMENT}"; then
+        log "  kustomization.yaml/deployment.yaml unchanged — no commit needed"
     else
-        phase_start "Committing and pushing updated kustomization.yaml..."
-        git -C "${ROOT}" add "${KUSTOMIZATION}"
+        phase_start "Committing and pushing updated manifests..."
+        git -C "${ROOT}" add "${KUSTOMIZATION}" "${DEPLOYMENT}"
         git -C "${ROOT}" commit -m "chore: deploy uptest ${IMAGE_TAG}"
         git -C "${ROOT}" push
         phase_end

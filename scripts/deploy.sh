@@ -9,11 +9,8 @@
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-log()  { echo "==> $*"; }
-dbg()  { [[ "$DEBUG" == "true" ]] && echo "    [dbg] $*" >&2 || true; }
-die()  { echo "ERROR: $*" >&2; exit 1; }
-# Get an output value from terragrunt.
-tg_get() { terragrunt output -raw "$1"; }
+# shellcheck source=scripts/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
 help() {
     echo "Usage: $0 [options] <environment>"
@@ -28,43 +25,6 @@ help() {
     echo "  --skip-build   Skip building Docker images"
     echo "  --skip-flux    Skip deploying Flux"
     echo "  --skip-infra   Skip deploying infrastructure"
-}
-
-# Print and run a command (command visible only in debug mode).
-run() {
-  dbg "$ $*"
-  "$@"
-}
-
-# Run a command with a hard timeout (first arg = seconds).
-# Prints the timeout and command in debug mode, always errors clearly on timeout.
-timed() {
-  local secs="$1"; shift
-  dbg "$ (timeout ${secs}s) $*"
-  local code=0
-  # Capture exit code via || to avoid the `if ! cmd` bash gotcha where $?
-  # inside an if-negation block reflects the inverted status (always 0).
-  timeout "${secs}" "$@" || code=$?
-  # exit code 124 is the timeout sentinel from GNU timeout
-  [[ $code -eq 124 ]] && die "Command timed out after ${secs}s: $*"
-  return $code
-}
-
-require() {
-  for cmd in "$@"; do
-    command -v "$cmd" >/dev/null 2>&1 || die "'$cmd' is not installed or not on PATH"
-  done
-}
-
-# Track wall-clock time for each named phase.
-_PHASE_T0=""
-phase_start() {
-  log "$*"
-  _PHASE_T0=$(date +%s)
-}
-phase_end() {
-  local elapsed=$(( $(date +%s) - _PHASE_T0 ))
-  dbg "Phase completed in ${elapsed}s"
 }
 
 wait_for_ssh() {
@@ -101,8 +61,9 @@ wait_for_ssh() {
 
 # ── setup ────────────────────────────────────────────────────────────────────
 
-OPTS=$(getopt -o dhv --long debug,help,skip-build,skip-flux -n 'deploy' -- "$@")
-if [ $? != 0 ]; then echo; help; exit 1; fi
+if ! OPTS=$(getopt -o dhv --long debug,help,skip-build,skip-flux -n 'deploy' -- "$@"); then
+    echo; help; exit 1
+fi
 
 eval set -- "$OPTS"
 
@@ -148,6 +109,7 @@ ENV_DIR="${ROOT}/${LIVE_PATH}/${ENV}"
 # ── environment ────────────────────────────────────────────────────────
 
 if [ -f "${ROOT}/.env" ]; then
+    # shellcheck disable=SC1091 # gitignored, user-supplied, no fixed content to follow
     source "${ROOT}/.env"
     dbg "Loaded .env (project=${GOOGLE_PROJECT}, region=${GOOGLE_REGION})"
 fi
@@ -189,7 +151,7 @@ deploy_infra() {
     local infra_dir=$1
     echo "Deploying infrastructure for ${ENV}..."
 
-    SERVICES=("network" "ingress" "gke" "artifact_registry")
+    SERVICES=("network" "ingress" "gke" "artifact_registry" "wif")
     for service in "${SERVICES[@]}"; do
         echo "    Deploying $service..."
         cd "${infra_dir}/${service}"
@@ -217,6 +179,13 @@ deploy_infra() {
             GAR_IMAGE="${GAR_ENDPOINT}/uptest"
             dbg "GAR_ENDPOINT: ${GAR_ENDPOINT}"
             dbg "GAR_IMAGE: ${GAR_IMAGE}:${IMAGE_TAG}"
+        fi
+
+        if [ "${service}" == "wif" ]; then
+            WIF_PROVIDER=$(tg_get "workload_identity_provider")
+            WIF_DEPLOYER_SA=$(tg_get "deployer_service_account_email")
+            dbg "WIF_PROVIDER: ${WIF_PROVIDER}"
+            dbg "WIF_DEPLOYER_SA: ${WIF_DEPLOYER_SA}"
         fi
     done
 }
@@ -319,3 +288,10 @@ echo
 echo "    uptest: http://${INGRESS_IP}"
 echo "    (GCLB provisioning can take several minutes after the Ingress is first created;"
 echo "     check progress with: kubectl get ingress -n uptest)"
+echo
+echo "    Set these as GitHub repo variables/secrets to enable .github/workflows/deploy-dev.yml:"
+echo "      GCP_WORKLOAD_IDENTITY_PROVIDER (secret): ${WIF_PROVIDER}"
+echo "      GCP_CI_DEPLOYER_SA (secret):             ${WIF_DEPLOYER_SA}"
+echo "      GAR_ENDPOINT (variable):                 ${GAR_ENDPOINT}"
+echo "      GOOGLE_PROJECT (variable):                ${GOOGLE_PROJECT}"
+echo "      GOOGLE_REGION (variable):                 ${GOOGLE_REGION}"

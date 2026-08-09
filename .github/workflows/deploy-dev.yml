@@ -1,0 +1,64 @@
+name: Deploy uptest to dev
+
+# Trunk-based: every push to main that touches the app builds one immutable
+# image (tagged with the git short SHA), pins k8s/apps/dev/uptest's manifest
+# to that image's digest, and commits the pinned manifest back to main. Flux
+# (already watching k8s/clusters/dev) reconciles the change into the dev
+# cluster -- this workflow never touches the cluster directly.
+#
+# Promotion to higher environments (staging/prod, added later) is expected
+# to copy this same digest into that environment's manifest rather than
+# rebuilding -- see scripts/build.sh's header comment.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/uptest/**"
+      - "scripts/build.sh"
+      - "scripts/common.sh"
+      - ".github/workflows/deploy-dev.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # to commit the pinned manifest back to main
+  id-token: write # for keyless GCP auth via Workload Identity Federation
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false # never cancel a build mid-push/mid-commit
+
+jobs:
+  build-and-pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          # Provisioned by infra/modules/wif (infra/live/dev/wif). After
+          # applying that unit, run `scripts/deploy.sh dev` (or `terragrunt
+          # output` in infra/live/dev/wif) and set the printed values as
+          # these two repo secrets.
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_CI_DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Configure git identity for the pinned-manifest commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Build, push, and pin dev to the resulting digest
+        env:
+          # Avoids needing terragrunt/state access in CI just to read one
+          # output -- set this once as a repo variable after the artifact
+          # registry unit has been applied.
+          GAR_ENDPOINT: ${{ vars.GAR_ENDPOINT }}
+          GOOGLE_PROJECT: ${{ vars.GOOGLE_PROJECT }}
+          GOOGLE_REGION: ${{ vars.GOOGLE_REGION }}
+        run: scripts/build.sh dev

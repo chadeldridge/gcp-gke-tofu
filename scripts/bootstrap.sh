@@ -13,14 +13,13 @@ if [[ "$CWD" == "$SCRIPT_DIR/opentofu/live/"* && -f "terragrunt.hcl" ]]; then
     is_service_dir=true
 fi
 
-tofu_dir="."                        # Directory where .tf files are kept.
 encrypted="false"                   # Report if the bucket is being encrypted based on whether a key was provided.
 
 if [ "$is_service_dir" = true ]; then
     detected_stage=$(basename "$(dirname "$CWD")")
     stage="${DEPLOY_ENV:-$detected_stage}"
     tofu_root_dir="$SCRIPT_DIR/opentofu"
-    prefix_dir="${CWD#$tofu_root_dir/}"
+    prefix_dir="${CWD#"$tofu_root_dir"/}"
     prefix="${prefix_dir}/terraform.tfstate"
 else
     stage="${DEPLOY_ENV:-dev}"
@@ -54,8 +53,9 @@ help() {
     echo
 }
 
-OPTS=$(getopt -o h --long help,prefix:,vers: -n 'bootstrap' -- "$@")
-if [ $? != 0 ]; then echo; help; exit 1; fi
+if ! OPTS=$(getopt -o h --long help,prefix:,vers: -n 'bootstrap' -- "$@"); then
+    echo; help; exit 1
+fi
 
 eval set -- "$OPTS"
 set -e
@@ -119,7 +119,7 @@ create_bucket() {
 
     # Create a tmp lifecycle config file.
     lc_file="${tmp_dir}/gcs-lifecycle.json"
-    cat << EOF > $lc_file
+    cat << EOF > "$lc_file"
 {
   "rule": [
     {
@@ -135,14 +135,14 @@ EOF
 
     # Create the new state bucket.
     gcloud storage buckets create \
-        gs://${project}${bucket_suffix} \
-        --project=${project} \
-        --location=${region} \
-        --lifecycle-file=${lc_file}
+        gs://"${project}"${bucket_suffix} \
+        --project="${project}" \
+        --location="${region}" \
+        --lifecycle-file="${lc_file}"
 
     # gcloud crate command does not provide feedback so verify the bucket was created with describe.
-    desc=$(gcloud storage buckets describe gs://${project}${bucket_suffix} --format=json)
-    bucket=$(echo $desc | jq -r '.name')
+    desc=$(gcloud storage buckets describe gs://"${project}"${bucket_suffix} --format=json)
+    bucket=$(echo "$desc" | jq -r '.name')
 
     # Make sure we got a bucket name back.
     if [ -z "$bucket" ]; then
@@ -160,15 +160,13 @@ EOF
     #  --log-type="DATA_READ" \
     #  --log-type="DATA_WRITE"
 
-    desc=$(gcloud storage buckets describe gs://${project}${bucket_suffix} --format=json)
+    desc=$(gcloud storage buckets describe gs://"${project}"${bucket_suffix} --format=json)
 }
 
 # Check to see if the bucket already exists. To do so we need describe to be
 # able to fail without exiting the script.
 set +e
-desc=$(gcloud storage buckets describe gs://${project}${bucket_suffix} --format=json 2>&1)
-
-if [ $? -ne 0 ]; then
+if ! desc=$(gcloud storage buckets describe gs://"${project}"${bucket_suffix} --format=json 2>&1); then
     # If descibe failed then we need to create a bucket. create_bucket should update the value of
     # $desc so we can reduce how many times we need to run it.
     echo "Bucket does not exist..."
@@ -178,10 +176,10 @@ fi
 
 # Get details from describe.
 #desc=$(gcloud storage buckets describe gs://${project}${bucket_suffix} --format=json)
-bucket=$(echo $desc | jq -r '.name')
-is_versioned=$(echo $desc | jq -r '.versioning')
-version_retention=$(echo $desc | jq -r '.lifecycle_config.rule.[].condition.numNewerVersions')
-url=$(echo $desc | jq -r '.storage_url')
+bucket=$(echo "$desc" | jq -r '.name')
+is_versioned=$(echo "$desc" | jq -r '.versioning')
+version_retention=$(echo "$desc" | jq -r '.lifecycle_config.rule.[].condition.numNewerVersions')
+url=$(echo "$desc" | jq -r '.storage_url')
 
 echo
 echo "Bucket:     ${bucket}"

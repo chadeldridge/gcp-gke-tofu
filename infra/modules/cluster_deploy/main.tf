@@ -10,19 +10,20 @@
 module "gke" {
   source = "../gke"
 
-  project_id          = var.project_id
-  region              = var.region
-  cluster_name        = var.cluster_name
-  network_name        = var.network_name
-  subnetwork_name     = var.subnetwork_name
-  pods_range_name     = var.pods_range_name
-  services_range_name = var.services_range_name
-  kubernetes_version  = var.kubernetes_version
-  node_machine_type   = var.node_machine_type
-  node_count          = var.node_count
-  min_node_count      = var.min_node_count
-  max_node_count      = var.max_node_count
-  node_zones          = var.node_zones
+  project_id              = var.project_id
+  region                  = var.region
+  cluster_name            = var.cluster_name
+  network_name            = var.network_name
+  subnetwork_name         = var.subnetwork_name
+  pods_range_name         = var.pods_range_name
+  services_range_name     = var.services_range_name
+  authorized_network_cidr = var.authorized_network_cidr
+  kubernetes_version      = var.kubernetes_version
+  node_machine_type       = var.node_machine_type
+  node_count              = var.node_count
+  min_node_count          = var.min_node_count
+  max_node_count          = var.max_node_count
+  node_zones              = var.node_zones
 }
 
 # Configure Kubernetes provider using GKE credentials

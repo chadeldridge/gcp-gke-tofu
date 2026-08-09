@@ -34,6 +34,11 @@ variable "services_range_name" {
   description = "Name of the subnetwork to use for services"
 }
 
+variable "authorized_network_cidr" {
+  type        = string
+  description = "CIDR block allowed to reach the GKE control plane's public endpoint"
+}
+
 variable "kubernetes_version" {
   type        = string
   description = "Kubernetes version to use for the cluster"

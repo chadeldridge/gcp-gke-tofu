@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: uptest
+  namespace: uptest
+spec:
+  podSelector:
+    matchLabels:
+      app: uptest
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # GCE Ingress traffic (including GCLB health checks) arrives at the
+    # NodePort and gets SNAT'd to a node-internal IP before reaching the
+    # pod -- the pod never sees the original Google Front End ranges
+    # (130.211.0.0/22 / 35.191.0.0/16), so this allows from the cluster's
+    # own VPC subnet instead. Must match infra/modules/network's subnet
+    # ip_cidr_range. This also covers kubelet's own liveness/readinessProbe
+    # traffic, which originates from the node and is subject to
+    # NetworkPolicy under GKE Dataplane V2.
+    - from:
+        - ipBlock:
+            cidr: 10.0.0.0/20
+  egress:
+    # DNS only -- uptest makes no outbound calls of its own (see main.go).
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

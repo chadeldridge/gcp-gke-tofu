@@ -1,0 +1,3 @@
+# Follow `source`d files (e.g. scripts/common.sh) so shellcheck can see how
+# sourced variables/functions are actually used, instead of guessing.
+external-sources=true

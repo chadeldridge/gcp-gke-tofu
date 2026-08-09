@@ -6,6 +6,7 @@ resources:
   - service.yaml
   - backendconfig.yaml
   - ingress.yaml
+  - networkpolicy.yaml
 images:
   - name: uptest
     newName: us-central1-docker.pkg.dev/pulumi-dev-493104/docker-private/uptest

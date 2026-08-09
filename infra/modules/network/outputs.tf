@@ -14,11 +14,11 @@ output "subnetwork_services_name" {
   value = google_compute_subnetwork.main.secondary_ip_range[1].range_name
 }
 
-##### Below outputs are currently unused #####
 output "subnetwork_main_cidr" {
   value = google_compute_subnetwork.main.ip_cidr_range
 }
 
+##### Below outputs are currently unused #####
 output "subnetwork_pods_cidr" {
   value = google_compute_subnetwork.main.secondary_ip_range[0].ip_cidr_range
 }

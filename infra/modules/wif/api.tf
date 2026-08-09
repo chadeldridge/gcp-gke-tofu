@@ -1,9 +1,8 @@
 variable "gcp_apis" {
   default = [
-    "compute.googleapis.com",
-    "container.googleapis.com",
-    "logging.googleapis.com",
-    "artifactregistry.googleapis.com"
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "sts.googleapis.com",
   ]
 }
 

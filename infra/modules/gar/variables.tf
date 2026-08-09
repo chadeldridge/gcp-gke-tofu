@@ -1,27 +1,27 @@
 variable "region" {
-  type = string
+  type        = string
   description = "GCP Region for the application and supporting infrastructure"
-  default = "us-central1"
+  default     = "us-central1"
 }
 
 variable "env" {
-  type = string
+  type        = string
   description = "Environment name"
 }
 
 variable "docker_repo_name" {
-  type = string
+  type        = string
   description = "Application name"
 }
 
 variable "untagged_keep_days" {
-  type = number
+  type        = number
   description = "Number of days to keep untagged images"
-  default = 5
+  default     = 5
 }
 
 variable "versions_keep_count" {
-  type = number
+  type        = number
   description = "Number of most recent versions to keep"
-  default = 5
+  default     = 5
 }

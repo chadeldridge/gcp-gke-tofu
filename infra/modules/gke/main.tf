@@ -3,6 +3,8 @@
 # Delete default node pool.
 ################################################################################
 resource "google_container_cluster" "primary" {
+  # checkov:skip=CKV_GCP_65: no Cloud Identity security group provisioned for this cluster's RBAC
+  # checkov:skip=CKV_GCP_12: NetworkPolicy is natively enforced via datapath_provider = ADVANCED_DATAPATH (GKE Dataplane V2); the legacy addon is redundant and not meant to be combined with it
   ###########################################
   # Cluster config
   ###########################################
@@ -10,8 +12,13 @@ resource "google_container_cluster" "primary" {
   location = var.region
   project  = var.project_id
 
+  resource_labels = {
+    cluster    = var.cluster_name
+    managed_by = "terraform"
+  }
+
   # Ensure all required GCP APIs are enabled before creating the cluster.
-  depends_on = [ google_project_service.enabled_apis ]
+  depends_on = [google_project_service.enabled_apis]
 
   # Delete the node pool to use separately managed one.addons_config
   # This allows for node pool replacement withouth having to delete the cluster.
@@ -49,10 +56,12 @@ resource "google_container_cluster" "primary" {
 
   master_authorized_networks_config {
     cidr_blocks {
-      cidr_block   = "0.0.0.0/0"
-      display_name = "All networks"
+      cidr_block   = var.authorized_network_cidr
+      display_name = "VPC network"
     }
   }
+
+  enable_intranode_visibility = true
 
   ###########################################
   # Logging and Monitoring
@@ -71,6 +80,26 @@ resource "google_container_cluster" "primary" {
   ###########################################
   # Security and Other
   ###########################################
+  master_auth {
+    client_certificate_config {
+      issue_client_certificate = false
+    }
+  }
+
+  # Configures the transient default node pool (deleted immediately after
+  # creation via remove_default_node_pool) so it never runs without the
+  # metadata server enabled, matching the managed node pool below.
+  node_config {
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
+
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
+    }
+  }
+
   binary_authorization {
     evaluation_mode = "PROJECT_SINGLETON_POLICY_ENFORCE"
   }

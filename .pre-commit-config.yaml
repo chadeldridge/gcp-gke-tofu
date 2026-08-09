@@ -1,0 +1,45 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.108.1 # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_docs
+      - id: terraform_validate
+        files: ^infra/modules/.*\.tf$
+      - id: terragrunt_fmt
+      - id: terragrunt_validate
+        files: ^infra/live/root\.hcl$
+      - id: terragrunt_validate
+        files: ^infra/live/.*/terragrunt\.hcl$
+      - id: terraform_checkov
+        args: [--args=--skip-path=k8s/clusters/.*/flux-system]
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+  - repo: https://github.com/AleksaC/hadolint-py
+    rev: v2.15.1
+    hooks:
+      - id: hadolint
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+  - repo: local
+    hooks:
+      - id: kustomize-build
+        name: kustomize build
+        description: Renders every kustomization.yaml to catch broken references before Flux does
+        entry: scripts/lint-kustomize.sh
+        language: script
+        files: ^k8s/.*\.ya?ml$
+        pass_filenames: false
